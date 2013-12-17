@@ -1,0 +1,6 @@
+---
+# The variables file used by the playbooks in the web group.
+# These don't have to be explicitly imported by vars_files: they are autopopulated.
+
+server_name: example.com
+root: /var/www
