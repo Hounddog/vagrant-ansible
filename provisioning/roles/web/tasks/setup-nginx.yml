@@ -1,0 +1,25 @@
+---
+#These tasks install nginx
+- name: install nginx
+  apt: name=nginx state=latest
+  sudo: yes
+  notify:
+    - start nginx
+
+- name: Install PHP-FPM
+  apt: name=php5-fpm
+  sudo: yes
+  notify:
+    - restart nginx
+
+- name: Add nginx {{ server_name }} vhost
+  template: src=vhosts.dist dest=/etc/nginx/sites-available/{{ server_name }}
+  sudo: yes
+  notify: 
+    - restart nginx
+
+- name: Link nginx {{ server_name }} vhost in sites-enabled
+  file: src=/etc/nginx/sites-available/{{ server_name }} dest=/etc/nginx/sites-enabled/{{ server_name }} state=link
+  sudo: yes
+  notify:
+    - restart nginx

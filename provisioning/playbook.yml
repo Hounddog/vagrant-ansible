@@ -1,0 +1,6 @@
+---
+- hosts: development
+
+  roles:
+    - common
+    - web
