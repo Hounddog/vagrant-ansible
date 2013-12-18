@@ -1,10 +1,29 @@
 ---
 #These tasks install nginx
-- name: install nginx
-  apt: name=nginx state=latest
-  sudo: yes
-  notify:
-    - start nginx
+- name: "Download nginx from git"
+  git: repo={{item.repo}} dest={{item.dest}} version={{item.version}}
+  with_items:
+    - {
+        repo: "https://github.com/nginx/nginx.git",
+        dest: "nginx",
+        version: $nginx_version
+      }
+
+- name: "Compile nginx"
+  command: chdir=nginx {{item}}
+  with_items:
+    - "./configure --prefix=/opt/nginx"
+    - "make -j4"
+
+- name: "Install nginx"
+  sudo: true
+  command: chdir=nginx make install
+  
+#- name: install nginx
+#  apt: name=nginx state=latest
+#  sudo: yes
+#  notify:
+#    - start nginx
 
 - name: Install PHP-FPM
   apt: name=php5-fpm
