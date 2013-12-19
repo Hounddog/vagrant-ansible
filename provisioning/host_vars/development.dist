@@ -27,7 +27,8 @@ nginx_rtmp_module_publish_ip:
 recompile: false #Dont touch this flag as this is required in the build
 
 #Parameteres for mysql
-mysql_root_password: enter_password_here
+mysql_params:
+  root_password: 4321
 
 utf8: true
 mysqld:

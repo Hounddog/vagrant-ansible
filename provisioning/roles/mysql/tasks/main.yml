@@ -8,7 +8,7 @@
   sudo: yes
 
 - name: Update mysql root password for all root accounts
-  mysql_user: name=root host={{item}} password={{ mysql_root_password }}
+  mysql_user: name=root host={{item}} password={{ mysql_params.root_password }}
   sudo: yes
   with_items:
     - $ansible_hostname
@@ -32,13 +32,13 @@
   sudo: yes
 
 - name: write conf.d/mysqld.cnf
-  action: template src=mysqld.cnf.j2 dest=/etc/mysql/conf.d/mysqld.cnf
+  template: src=mysqld.cnf.j2 dest=/etc/mysql/conf.d/mysqld.cnf
   sudo: yes
   notify:
     - restart mysql
 
 - name: write conf.d/client.cnf
-  action: template src=client.cnf.j2 dest=/etc/mysql/conf.d/client.cnf
+  template: src=client.cnf.j2 dest=/etc/mysql/conf.d/client.cnf
   sudo: yes
   notify:
     - restart mysql

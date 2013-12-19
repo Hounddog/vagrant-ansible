@@ -1,0 +1,4 @@
+---
+
+mysql_params:
+  root_password: 1234
