@@ -1,0 +1,16 @@
+rtmp {
+     server {
+        listen 1935;
+
+        wait_key on;
+        wait_video on;
+
+        application live {
+            live on;
+
+            {% for ip in nginx_rtmp_module_publish_ip %}
+            allow publish {{ip}};
+            {% endfor %}
+        }
+    }
+}

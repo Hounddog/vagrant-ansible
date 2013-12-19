@@ -1,15 +1,71 @@
 ---
 #These tasks install nginx
-- name: install nginx
-  apt: name=nginx state=latest
-  sudo: yes
-  notify:
-    - start nginx
+- name: Download nginx from git
+  git: repo={{item.repo}} dest={{item.dest}} version={{item.version}}
+  with_items:
+    - {
+        repo: "https://github.com/nginx/nginx.git",
+        dest: "nginx",
+        version: $nginx_version
+      }
 
-- name: Install PHP-FPM
-  apt: name=php5-fpm
-  sudo: yes
+#- set_fact:
+#    nginx_modules: ['--add-module=../modules/rtmp']
+#  when: nginx_rtmp_module == true
+
+- name: "Download nginx rtmp-module from git"
+  git: repo={{item.repo}} dest={{item.dest}} version={{item.version}}
+  with_items:
+    - {
+        repo: "https://github.com/arut/nginx-rtmp-module.git",
+        dest: "modules/rtmp", version: $nginx_rtmp_module_version
+      }
+  when: nginx_rtmp_module == true
+
+- name: Get installed modules for nginx
+  shell: nginx -V
+  register: nginx_flags
+  ignore_errors: true
+
+- set_fact:
+    recompile: true
+  when: "item not in nginx_flags.stderr"
+  with_items: nginx_modules
+
+- name: Compile nginx
+  command: chdir=nginx {{item}}
+  with_items:
+    - "./configure {{ nginx_modules|join(' ') }} --prefix=/opt/nginx"
+    - "make -j4"
+  when: recompile == true
+
+- name: Install nginx
+  sudo: true
+  command: chdir=nginx make install
+  when: recompile == true
+
+- name: "Copying nginx Config"
+  sudo: true
+  template: src=nginx.conf dest=/etc/nginx/nginx.conf
   notify:
+    - restart nginx
+  when: recompile == true
+
+- name: "Copying nginx Shell script"
+  sudo: true
+  template: src=nginx dest=/etc/init.d/nginx mode=0711
+  notify:
+    - restart nginx
+  when: recompile == true
+
+- name: Create nginx directory sites-available
+  file: path=/etc/nginx/sites-available state=directory
+  sudo: yes
+
+- name: Add nginx default vhost
+  template: src=default dest=/etc/nginx/sites-available/default
+  sudo: yes
+  notify: 
     - restart nginx
 
 - name: Add nginx {{ server_name }} vhost
@@ -18,8 +74,26 @@
   notify: 
     - restart nginx
 
+- name: Create nginx directory sites-enabled
+  file: path=/etc/nginx/sites-enabled state=directory
+  sudo: yes
+
+- name: Link nginx default vhost in sites-enabled
+  file: src=/etc/nginx/sites-available/default dest=/etc/nginx/sites-enabled/default state=link
+  sudo: yes
+  notify:
+    - restart nginx
+
 - name: Link nginx {{ server_name }} vhost in sites-enabled
   file: src=/etc/nginx/sites-available/{{ server_name }} dest=/etc/nginx/sites-enabled/{{ server_name }} state=link
+  sudo: yes
+  notify:
+    - restart nginx
+
+
+#throw into seperate file
+- name: Install PHP-FPM
+  apt: name=php5-fpm
   sudo: yes
   notify:
     - restart nginx

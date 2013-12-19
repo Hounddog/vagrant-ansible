@@ -1,6 +1,27 @@
 ---
-# The variables file used by the playbooks in the web group.
+# The variables file used by the playbooks in the development host.
 # These don't have to be explicitly imported by vars_files: they are autopopulated.
 
-server_name: example.com
+server_name: clingr.dev
 root: /var/www
+
+nginx_version: v1.5.7
+
+nginx_modules: 
+  [
+  '--sbin-path=/usr/local/sbin',
+  '--conf-path=/etc/nginx/nginx.conf',
+  '--error-log-path=/var/log/nginx/error.log',
+  '--pid-path=/var/run/nginx.pid',
+  '--with-ipv6',
+  '--add-module=../modules/rtmp'
+  ]
+
+#modules to install
+nginx_rtmp_module: true 
+nginx_rtmp_module_version: v1.0.7
+nginx_rtmp_module_publish_ip:
+- 192.168.0.7
+- 83.255.56.238
+
+recompile: true #Dont touch this flag as this is required in the build
