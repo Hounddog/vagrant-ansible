@@ -1,5 +1,15 @@
 ---
 #These tasks install nginx
+- name: Get installed modules for nginx
+  shell: nginx -V
+  register: nginx_flags
+  ignore_errors: true
+
+- set_fact:
+    recompile: true
+  when: "item not in nginx_flags.stderr"
+  with_items: nginx_modules
+
 - name: Download nginx from git
   git: repo={{item.repo}} dest={{item.dest}} version={{item.version}}
   with_items:
@@ -8,6 +18,7 @@
         dest: "nginx",
         version: $nginx_version
       }
+  when: recompile == true
 
 #- set_fact:
 #    nginx_modules: ['--add-module=../modules/rtmp']
@@ -20,17 +31,11 @@
         repo: "https://github.com/arut/nginx-rtmp-module.git",
         dest: "modules/rtmp", version: $nginx_rtmp_module_version
       }
-  when: nginx_rtmp_module == true
+  when:
+    - nginx_rtmp_module == true
+    - recompile == true
 
-- name: Get installed modules for nginx
-  shell: nginx -V
-  register: nginx_flags
-  ignore_errors: true
 
-- set_fact:
-    recompile: true
-  when: "item not in nginx_flags.stderr"
-  with_items: nginx_modules
 
 - name: Compile nginx
   command: chdir=nginx {{item}}
@@ -62,21 +67,15 @@
   file: path=/etc/nginx/sites-available state=directory
   sudo: yes
 
+- name: Create nginx directory sites-enabled
+  file: path=/etc/nginx/sites-enabled state=directory
+  sudo: yes
+
 - name: Add nginx default vhost
   template: src=default dest=/etc/nginx/sites-available/default
   sudo: yes
   notify: 
     - restart nginx
-
-- name: Add nginx {{ server_name }} vhost
-  template: src=vhosts.dist dest=/etc/nginx/sites-available/{{ server_name }}
-  sudo: yes
-  notify: 
-    - restart nginx
-
-- name: Create nginx directory sites-enabled
-  file: path=/etc/nginx/sites-enabled state=directory
-  sudo: yes
 
 - name: Link nginx default vhost in sites-enabled
   file: src=/etc/nginx/sites-available/default dest=/etc/nginx/sites-enabled/default state=link
@@ -84,7 +83,13 @@
   notify:
     - restart nginx
 
-- name: Link nginx {{ server_name }} vhost in sites-enabled
+- name: Add nginx $server_name vhost
+  template: src=vhosts.dist dest=/etc/nginx/sites-available/{{ server_name }}
+  sudo: yes
+  notify: 
+    - restart nginx
+
+- name: Link nginx $server_name vhost in sites-enabled
   file: src=/etc/nginx/sites-available/{{ server_name }} dest=/etc/nginx/sites-enabled/{{ server_name }} state=link
   sudo: yes
   notify:
