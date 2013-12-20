@@ -31,11 +31,7 @@
         repo: "https://github.com/arut/nginx-rtmp-module.git",
         dest: "modules/rtmp", version: $nginx_rtmp_module_version
       }
-  when:
-    - nginx_rtmp_module == true
-    - recompile == true
-
-
+  when: nginx_rtmp_module == true and recompile == true
 
 - name: Compile nginx
   command: chdir=nginx {{item}}
@@ -49,12 +45,9 @@
   command: chdir=nginx make install
   when: recompile == true
 
-- name: "Copying nginx Config"
+- name: "Copy the nginx configuration file"
   sudo: true
   template: src=nginx.conf dest=/etc/nginx/nginx.conf
-  notify:
-    - restart nginx
-  when: recompile == true
 
 - name: "Copying nginx Shell script"
   sudo: true
@@ -63,19 +56,18 @@
     - restart nginx
   when: recompile == true
 
-- name: Create nginx directory sites-available
-  file: path=/etc/nginx/sites-available state=directory
+- name: Create nginx directories for site configuration
+  file: path=/etc/nginx/{{item}} state=directory owner=root group=root mode=0755
   sudo: yes
+  with_items:
+    - "sites-available"
+    - "sites-enabled"
 
-- name: Create nginx directory sites-enabled
-  file: path=/etc/nginx/sites-enabled state=directory
-  sudo: yes
-
-- name: Add nginx default vhost
-  template: src=default dest=/etc/nginx/sites-available/default
-  sudo: yes
-  notify: 
-    - restart nginx
+#- name: Add nginx default vhost
+#  template: src=default dest=/etc/nginx/sites-available/default
+#  sudo: yes
+#  notify: 
+#    - restart nginx
 
 - name: Link nginx default vhost in sites-enabled
   file: src=/etc/nginx/sites-available/default dest=/etc/nginx/sites-enabled/default state=link
@@ -95,10 +87,5 @@
   notify:
     - restart nginx
 
-
-#throw into seperate file
-- name: Install PHP-FPM
-  apt: name=php5-fpm
-  sudo: yes
-  notify:
-    - restart nginx
+- name: start the nginx service
+  service: name=nginx state=started enabled=yes

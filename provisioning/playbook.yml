@@ -3,5 +3,6 @@
 
   roles:
     - common
-    - web
+    - nginx
+    - php
     - mysql

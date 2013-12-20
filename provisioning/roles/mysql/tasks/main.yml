@@ -1,17 +1,17 @@
 ---
-- name: Installing Python MYSQL
-  apt: name=python-mysqldb state=present
-  sudo: yes
 
-- name: Install mysql-server
-  apt: name=mysql-server state=latest
+- name: Install the mysql packages
+  apt: name=mysql-server state=latest update-cache=yes
   sudo: yes
+  with_items:
+    - mysql-server
+    - python-mysqldb
 
 - name: Update mysql root password for all root accounts
   mysql_user: name=root host={{item}} password={{ mysql_params.root_password }}
   sudo: yes
   with_items:
-    - $ansible_hostname
+    - "{{ ansible_hostname }}"
     - 127.0.0.1
     - ::1
     - localhost
@@ -21,11 +21,11 @@
   sudo: yes
 
 - name: ensure anonymous users are not in the database
-  mysql_user: name='' host={{item}} state=absent
+  mysql_user: name='' host={{ item }} state=absent
   sudo: yes
   with_items:
     - localhost
-    - $inventory_hostname
+    - "{{ ansible_hostname }}"
 
 - name: remove the test database
   mysql_db: name=test state=absent

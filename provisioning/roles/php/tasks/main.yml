@@ -1,0 +1,7 @@
+---
+#Install php
+- name: Install PHP-FPM
+  apt: name=php5-fpm
+  sudo: yes
+  notify:
+    - restart nginx
