@@ -21,7 +21,7 @@ Vagrant.configure("2") do |config|
 
     development_config.ssh.keep_alive = true
     development_config.vagrant.host = :detect
-    config.vm.provision "ansible" do |ansible|
+    development_config.vm.provision "ansible" do |ansible|
       ansible.playbook = "provisioning/playbook.yml"
     end
   end

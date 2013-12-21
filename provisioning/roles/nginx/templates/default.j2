@@ -3,7 +3,7 @@ server {
     server_name  localhost;
 
     location / {
-        root   html;
+        root   /opt/nginx/html;
         index  index.html index.htm;
     }
 
@@ -12,7 +12,7 @@ server {
     #
     error_page   500 502 503 504  /50x.html;
     location = /50x.html {
-        root   html;
+        root   /opt/nginx/html;
     }
 
 }

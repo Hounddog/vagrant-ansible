@@ -1,0 +1,47 @@
+---
+# The variables file used by the playbooks in the development host.
+# These don't have to be explicitly imported by vars_files: they are autopopulated.
+
+nginx_version: v1.5.7
+
+nginx_config:
+  [
+  '--prefix=/usr/share/nginx',
+  '--sbin-path=/usr/local/sbin',
+  '--conf-path=/etc/nginx/nginx.conf',
+  '--pid-path=/var/run/nginx.pid',
+  '--lock-path=/var/lock/nginx.lock',
+  '--error-log-path=/var/log/nginx/error.log',
+  '--http-log-path=/var/log/nginx/access.log',
+  '--user=www-data',
+  '--group=www-data',
+  '--with-ipv6',
+  ]
+
+#modules to install
+nginx_rtmp_module: false 
+nginx_rtmp_module_version: v1.0.7
+nginx_rtmp_module_publish_ip:
+- 192.168.0.7
+- 83.255.56.238
+
+recompile: false #Override if you want to rebuild nginx
+
+nginx_max_clients: 512
+
+nginx_http_params:
+  sendfile: "on"
+  tcp_nopush: "on"
+  tcp_nodelay: "on"
+  keepalive_timeout: "65"
+  access_log: "/var/log/nginx/access.log"
+  error_log: "/var/log/nginx/error.log"
+  
+nginx_sites:
+ - server:
+    file_name: default
+    listen: 80
+    server_name: localhost
+    root: "/var/www"
+    location1: {name: /, try_files: "$uri $uri/ /index.html"}
+    location2: {name: /images/, try_files: "$uri $uri/ /index.html"}

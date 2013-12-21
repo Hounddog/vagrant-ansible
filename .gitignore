@@ -1,3 +1,4 @@
 .vagrant
 vagrant_ansible_inventory_*
 provisioning/host_vars/development
+packer*
