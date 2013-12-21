@@ -1,7 +1,7 @@
 ---
 
 - name: Install the mysql packages
-  apt: name=mysql-server state=latest update-cache=yes
+  apt: name={{ item }} state=latest update-cache=yes
   sudo: yes
   with_items:
     - mysql-server

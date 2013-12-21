@@ -1,10 +1,6 @@
 ---
-- name: Update apt cache if required
-  apt: update_cache=yes cache_valid_time=3600
-  sudo: yes
-
 - name: "Installing vital packages"
-  apt: pkg={{item}} state=present
+  apt: pkg={{item}} state=latest update-cache=yes
   with_items:
   - build-essential
   - libpcre++-dev

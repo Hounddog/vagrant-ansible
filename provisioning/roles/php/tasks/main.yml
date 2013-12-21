@@ -1,7 +1,5 @@
 ---
 #Install php
 - name: Install PHP-FPM
-  apt: name=php5-fpm
+  apt: name=php5-fpm state=latest update-cache=yes
   sudo: yes
-  notify:
-    - restart nginx

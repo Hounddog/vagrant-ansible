@@ -1,2 +1,86 @@
 ---
-- include: setup-nginx.yml
+#These tasks install nginx
+- name: Get installed modules for nginx
+  shell: nginx -V
+  register: nginx_flags
+  ignore_errors: true
+
+- set_fact:
+    recompile: true
+  when: "item not in nginx_flags.stderr"
+  with_items: nginx_config
+
+- name: Download nginx from git
+  git: repo={{item.repo}} dest={{item.dest}} version={{item.version}}
+  with_items:
+    - {
+        repo: "https://github.com/nginx/nginx.git",
+        dest: "nginx",
+        version: $nginx_version
+      }
+  when: recompile == true
+
+- name: Download nginx rtmp-module from git
+  git: repo={{item.repo}} dest={{item.dest}} version={{item.version}}
+  with_items:
+    - {
+        repo: "https://github.com/arut/nginx-rtmp-module.git",
+        dest: "modules/rtmp", version: $nginx_rtmp_module_version
+      }
+  when: nginx_rtmp_module == true and recompile == true
+
+- name: Stop nginx before reinstalling
+  service: name=nginx state=stopped
+  ignore_errors: true
+  when: recompile == true
+
+- name: Compile nginx
+  command: chdir=nginx {{item}}
+  with_items:
+    - "./configure {{ nginx_config|join(' ') }} "
+    - "make -j4"
+  when: recompile == true
+
+- name: Install nginx
+  command: chdir=nginx make install
+  when: recompile == true
+
+- name: Copy the nginx configuration file
+  template: src=nginx.conf.j2 dest=/etc/nginx/nginx.conf
+  notify:
+    - restart nginx
+
+- name: "Copying nginx Shell script"
+  template: src=nginx dest=/etc/init.d/nginx mode=0711
+
+- name: Create nginx directories for site configuration
+  file: path=/etc/nginx/{{item}} state=directory owner=root group=root mode=0775
+  with_items:
+    - "sites-available"
+    - "sites-enabled"
+
+- name: Create /etc/nginx/conf.d directory
+  file: path=/etc/nginx/conf.d state=directory owner=root group=root mode=0775
+
+- name: Create /var/www directory
+  file: path=/var/www state=directory owner=root group=root mode=0755
+
+- name: Add nginx default vhost
+  template: src=default.j2 dest=/etc/nginx/sites-available/default
+  notify: 
+    - restart nginx
+
+- name: Link nginx default vhost in sites-enabled
+  file: src=/etc/nginx/sites-available/default dest=/etc/nginx/sites-enabled/default state=link
+  notify:
+    - restart nginx
+
+- name: Create the configurations for sites
+  template: src=site.j2 dest=/etc/nginx/conf.d/{{ item['server']['file_name'] }}.conf
+  with_items: nginx_sites
+  when: nginx_sites|lower != 'none'
+  notify: 
+   - reload nginx
+
+- name: Start the nginx service
+  service: name=nginx state=started enabled=yes
