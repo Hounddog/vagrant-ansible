@@ -1,0 +1,9 @@
+[webservers]
+192.168.56.200
+
+[dbservers]
+192.168.56.210
+
+[loadbalancers]
+
+[nagios]
