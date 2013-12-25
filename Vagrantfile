@@ -17,7 +17,7 @@ Vagrant.configure("2") do |config|
     end
     dev.vm.provision "ansible" do |ansible|
       ansible.playbook = "provisioning/playbook.yml"
-      ansible.inventory_path = "./provisioning/inventory_development"
+      ansible.inventory_path = "./provisioning/inventory/development"
     end
   end
 
@@ -30,10 +30,10 @@ Vagrant.configure("2") do |config|
       virtualbox.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
       virtualbox.customize ["modifyvm", :id, "--memory", "512"]
     end
-    stage_web_config.vm.provision "ansible" do |ansible|
-      ansible.playbook = "provisioning/playbook.yml"
-      ansible.inventory_path = "./provisioning/inventory_staging"
-    end
+    #stage_web_config.vm.provision "ansible" do |ansible|
+    #  ansible.playbook = "provisioning/playbook.yml"
+    #  ansible.inventory_path = "./provisioning/inventory_staging"
+    #end
   end
 
   #Local staging dbserver environment
@@ -45,11 +45,9 @@ Vagrant.configure("2") do |config|
       virtualbox.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
       virtualbox.customize ["modifyvm", :id, "--memory", "512"]
     end
-    stage_db_config.vm.provision "ansible" do |ansible|
-      ansible.playbook = "provisioning/playbook.yml"
-      ansible.inventory_path = "./provisioning/inventory_staging"
-    end
+    #stage_db_config.vm.provision "ansible" do |ansible|
+    #  ansible.playbook = "provisioning/playbook.yml"
+    #  ansible.inventory_path = "./provisioning/inventory_staging"
+    #end
   end
-
-  
 end
