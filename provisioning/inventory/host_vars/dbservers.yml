@@ -1,7 +1,0 @@
----
-
-mysql_db: 
-  - name: clingr
-  - replicate: no
-
-mysql_root_db_pass: 1234
