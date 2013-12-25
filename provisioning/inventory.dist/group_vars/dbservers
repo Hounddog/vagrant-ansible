@@ -1,0 +1,5 @@
+mysql_root_db_pass: system32
+
+mysql_db: 
+     - name: my_db
+       replicate: no

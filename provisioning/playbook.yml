@@ -1,6 +1,12 @@
 ---
-- hosts: development
+- hosts: webservers
   sudo: yes
   roles:
     - common
     - nginx
+    - php
+
+- hosts: dbservers
+  sudo: yes
+  roles:
+    - mysql

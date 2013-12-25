@@ -1,4 +1,3 @@
 ---
-  - name: restart mysql
-    service: name=mysql state=restarted enabled=yes
-    sudo: yes
+- name: restart mysql
+  service: name={{ mysql_service }} state=restarted 
